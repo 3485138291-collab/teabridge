@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeaBridge - 茶·桥·海</title>
+    <!-- Version: 1.6 | 子页面卡片改为毛玻璃图片卡片形式 -->
+    <style>
+        /* === 高级感配色变量（海雾茶韵）=== */
+        :root {
+            --bg-color: #F7F5F0;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --primary: #5B7A6E;
+            --primary-dark: #4A655A;
+            --secondary: #8C7B6C;
+            --text-main: #2E3330;
+            --text-sub: #7A7D79;
+            --border: rgba(46, 51, 48, 0.06);
+            --shadow: 0 4px 12px rgba(91, 122, 110, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: var(--primary);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: #FFFFFF;
+            letter-spacing: 2px;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: #FFFFFF;
+            margin-left: 30px;
+            font-size: 15px;
+            transition: all 0.3s;
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+        .nav-links a:hover, .nav-links a.active {
+            color: #FFFFFF;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* 主内容区 */
+        .main-wrap { flex: 1; }
+
+        /* 页面容器 */
+        .page {
+            display: none;
+            max-width: 1200px;
+            margin: 60px auto;
+            padding: 0 40px;
+            animation: fadeIn 0.4s ease;
+        }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 通用标题 & 段落 */
+        h1 { font-size: 48px; font-weight: 600; margin-bottom: 20px; }
+        h2 { font-size: 32px; font-weight: 600; margin-bottom: 30px; color: var(--primary); }
+        p { font-size: 18px; color: var(--text-sub); max-width: 800px; margin-bottom: 30px; }
+
+        /* 卡片网格 */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        /* 首页毛玻璃图片卡片（子页面复用） */
+        .glass-card {
+            position: relative;
+            border-radius: 12px;
+            padding: 40px 30px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        .glass-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(91,122,110,0.18); }
+
+        .glass-card .card-bg-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+            display: block;
+            background: #E8E6E1;
+        }
+
+        .glass-card .glass-layer {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            z-index: 1;
+        }
+
+        .glass-card .card-text {
+            position: relative;
+            z-index: 2;
+        }
+        .glass-card h3 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: var(--primary-dark);
+            text-shadow: 0 1px 2px rgba(255,255,255,0.5);
+        }
+        .glass-card p {
+            font-size: 15px;
+            line-height: 1.8;
+            margin-bottom: 0;
+            color: var(--text-main);
+            text-shadow: 0 1px 2px rgba(255,255,255,0.4);
+        }
+
+        /* 按钮 */
+        .btn {
+            display: inline-block;
+            padding: 14px 36px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+        .btn:hover { opacity: 0.9; }
+
+        /* 页脚 */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-sub);
+            font-size: 14px;
+            border-top: 1px solid var(--border);
+            margin-top: 60px;
+        }
+
+        /* 独立详情页 */
+        .detail-page {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 200;
+            background: var(--bg-color);
+            overflow-y: auto;
+            animation: slideIn 0.4s ease;
+        }
+        .detail-page.active { display: block; }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        .detail-hero {
+            width: 100%;
+            height: 45vh;
+            min-height: 300px;
+            background: #D8D5CE;
+            position: relative;
+            overflow: hidden;
+        }
+        .detail-hero img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        .detail-hero .placeholder-bg {
+            position: absolute; inset: 0;
+            display: none;
+            align-items: center; justify-content: center;
+            color: #9A9790; font-size: 16px;
+            background: linear-gradient(135deg, #D8D5CE 0%, #C5C2BB 100%);
+        }
+
+        .detail-back {
+            position: absolute;
+            top: 90px; left: 40px;
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 22px;
+            background: rgba(255,255,255,0.95);
+            border: none; border-radius: 8px;
+            font-size: 15px; color: var(--primary);
+            cursor: pointer; transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+        .detail-back:hover { background: #fff; transform: translateX(-3px); }
+
+        .detail-body {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 50px 40px 80px;
+        }
+        .detail-body h1 { font-size: 40px; color: var(--primary); margin-bottom: 16px; }
+        .detail-body .subtitle {
+            font-size: 18px; color: var(--text-sub);
+            margin-bottom: 40px; padding-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+        }
+        .detail-body .content-block { margin-bottom: 28px; }
+        .detail-body .content-block h3 { font-size: 20px; color: var(--text-main); margin-bottom: 10px; }
+        .detail-body .content-block p { font-size: 16px; line-height: 1.9; color: var(--text-sub); }
+
+        @media (max-width: 768px) {
+            .navbar { padding: 15px 20px; }
+            .nav-links a { margin-left: 15px; font-size: 13px; }
+            .page { padding: 0 20px; margin: 40px auto; }
+            h1 { font-size: 32px; }
+            .detail-back { top: 80px; left: 20px; }
+            .detail-body { padding: 40px 20px 60px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- ========== 导航栏 ========== -->
+    <nav class="navbar">
+        <div class="logo-wrap" onclick="navigate('home')">
+            <div class="logo-icon">
+                <img src="logo.png" alt="TeaBridge Logo">
+            </div>
+            <span class="logo-text">TeaBridge</span>
+        </div>
+        <div class="nav-links">
+            <a href="#home" data-page="home" class="active">首页</a>
+            <a href="#tea" data-page="tea">茶品</a>
+            <a href="#bridge" data-page="bridge">桥文化</a>
+            <a href="#sea" data-page="sea">海韵</a>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <div class="main-wrap">
+
+        <!-- ========== 首页 ========== -->
+        <section id="home" class="page active">
+            <h1>以茶为桥，连接山海</h1>
+            <p>在温润的茶香中，感受桥的坚韧与海的辽阔，让每一次品茗都成为心灵的栖息。</p>
+            <a href="#tea" class="btn" onclick="navigate('tea')">探索茶韵</a>
+
+            <div class="cards">
+                <div class="glass-card" onclick="openDetail('tea')">
+                    <img class="card-bg-img" src="tea.png" alt="茶之温润">
+                    <div class="glass-layer"></div>
+                    <div class="card-text">
+                        <h3>茶之温润</h3>
+                        <p>精选高山云雾茶，汤色澄澈如琥珀，入口回甘绵长。</p>
+                    </div>
+                </div>
+                <div class="glass-card" onclick="openDetail('bridge')">
+                    <img class="card-bg-img" src="bridge.png" alt="桥之连接">
+                    <div class="glass-layer"></div>
+                    <div class="card-text">
+                        <h3>桥之连接</h3>
+                        <p>以茶为媒介，搭建人与人、文化与文化的桥梁。</p>
+                    </div>
+                </div>
+                <div class="glass-card" onclick="openDetail('sea')">
+                    <img class="card-bg-img" src="sea.png" alt="海之辽阔">
+                    <div class="glass-layer"></div>
+                    <div class="card-text">
+                        <h3>海之辽阔</h3>
+                        <p>茶汤如海，包容万象；茶香似浪，涤荡心灵。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== 茶品页 ========== -->
+        <section id="tea" class="page">
+            <h2>茶品系列</h2>
+            <p>每一款茶都承载着山海的馈赠，从采摘到烘焙，全程遵循古法工艺，保留茶叶最本真的风味。</p>
+            <div class="cards">
+                <div class="glass-card">
+                    <img class="card-bg-img" src="cloud.png" alt="云雾绿茶">
+                    <div class="glass-layer"></div>
+                    <div class="card-text">
+                        <h3>云雾绿茶</h3>
+                        <p>产自海拔1200米高山，晨雾滋养，清香持久，回甘悠长。</p>
+                    </div>
+                </div>
+                <div class="glass-card">
+                    <img class="card-bg-img" src="cup.png" alt="陈年普洱">
+                    <div class="glass-layer"></div>
+                    <div class="card-text">
+                        <h3>陈年普洱</h3>
+                        <p>十年干仓陈化，汤色红浓透亮，口感醇厚顺滑，越陈越香。</p>
+                    </div>
+                </div>
+                <div class="glass-card">
+                    <img class="card-bg-img" src="yellow.png" alt="桂花乌龙">
+                    <div class="glass-layer"></div>
+                    <div class="card-text">
+                        <h3>桂花乌龙</h3>
+                        <p>鲜采金桂窨制，花香与茶韵交融，入口清甜，余韵不绝。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== 桥文化页 ========== -->
+        <section id="bridge" class="page">
+            <h2>桥文化</h2>
+            <p>茶是无声的桥梁，跨越地域、语言与文化的隔阂，让人与人之间多一份理解与温暖。</p>
+            <div class="cards">
+                <div class="glass-card">
+                    <img class="card-bg-img" src="honor.png" alt="茶席礼仪">
+                    <div class="glass-layer"></div>
+                    <div class="card-text">
+                        <h3>茶席礼仪</h3>
+                        <p>以茶待客，敬茶有序，传递尊重与诚意，延续千年东方礼序。</p>
+                    </div>
+                </div>
+                <div class="glass-card">
+                    <img class="card-bg-img" src="internaltional.png" alt="跨文化茶会">
+                    <div class="glass-layer"></div>
+                    <div class="card-text">
+                        <h3>跨文化茶会</h3>
+                        <p>联合各国茶文化爱好者，举办线上线下茶会，促进文明互鉴。</p>
+                    </div>
+                </div>
+                <div class="glass-card">
+                    <img class="card-bg-img" src="home.png" alt="社区茶空间">
+                    <div class="glass-layer"></div>
+                    <div class="card-text">
+                        <h3>社区茶空间</h3>
+                        <p>在城市角落打造开放式茶空间，让邻里因茶相聚，重建人际联结。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== 海韵页 ========== -->
+        <section id="sea" class="page">
+            <h2>海韵</h2>
+            <p>茶与海，皆是包容的象征。茶汤如海般深邃，茶香似浪般绵长，让人在喧嚣中找到内心的宁静。</p>
+            <div class="cards">
+                <div class="glass-card">
+                    <img class="card-bg-img" src="coast.png" alt="海边茶寮">
+                    <div class="glass-layer"></div>
+                    <div class="card-text">
+                        <h3>海边茶寮</h3>
+                        <p>坐落于海岸线的茶寮，听涛品茗，感受海风与茶香的交织。</p>
+                    </div>
+                </div>
+                <div class="glass-card">
+                    <img class="card-bg-img" src="blue.png" alt="海洋主题茶器">
+                    <div class="glass-layer"></div>
+                    <div class="card-text">
+                        <h3>海洋主题茶器</h3>
+                        <p>以海浪、贝壳为灵感设计的茶器，将海的意象融入日常茶事。</p>
+                    </div>
+                </div>
+                <div class="glass-card">
+                    <img class="card-bg-img" src="boat.png" alt="茶与航海史">
+                    <div class="glass-layer"></div>
+                    <div class="card-text">
+                        <h3>茶与航海史</h3>
+                        <p>追溯茶叶随商船远航的历史，见证茶如何连接世界各大洲。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- ========== 详情页：茶 ========== -->
+    <div id="detail-tea" class="detail-page">
+        <div class="detail-hero">
+            <img src="tea.png" alt="茶背景">
+            <div class="placeholder-bg">📷 替换背景大图 · 茶</div>
+        </div>
+        <button class="detail-back" onclick="closeDetail()">← 返回首页</button>
+        <div class="detail-body">
+            <h1>茶之温润</h1>
+            <p class="subtitle">一片树叶，承载千年文明；一杯清茶，润泽万千心灵。</p>
+            <div class="content-block"><h3>🍃 云雾绿茶</h3><p>产自海拔1200米高山，晨雾滋养，清香持久，回甘悠长。每一片茶叶都沐浴在云海之中，汲取天地精华，冲泡后汤色澄澈明亮，如初春山涧。</p></div>
+            <div class="content-block"><h3>🫖 陈年普洱</h3><p>十年干仓陈化，汤色红浓透亮，口感醇厚顺滑，越陈越香。时间赋予普洱独特的韵味，每一口都是岁月的沉淀与馈赠。</p></div>
+            <div class="content-block"><h3>🌸 桂花乌龙</h3><p>鲜采金桂窨制，花香与茶韵交融，入口清甜，余韵不绝。秋日桂花与乌龙茶的相遇，是一场香气与味觉的完美协奏。</p></div>
+        </div>
+    </div>
+
+    <!-- ========== 详情页：桥 ========== -->
+    <div id="detail-bridge" class="detail-page">
+        <div class="detail-hero">
+            <img src="bridge.png" alt="桥背景">
+            <div class="placeholder-bg">📷 替换背景大图 · 桥</div>
+        </div>
+        <button class="detail-back" onclick="closeDetail()">← 返回首页</button>
+        <div class="detail-body">
+            <h1>桥之连接</h1>
+            <p class="subtitle">茶是无声的桥梁，跨越地域与文化的隔阂，让人心相通。</p>
+            <div class="content-block"><h3>🤝 茶席礼仪</h3><p>以茶待客，敬茶有序，传递尊重与诚意，延续千年东方礼序。一杯茶的递送之间，蕴含着深厚的文化意涵与人际温度。</p></div>
+            <div class="content-block"><h3>🌍 跨文化茶会</h3><p>联合各国茶文化爱好者，举办线上线下茶会，促进文明互鉴。从英式下午茶到日本茶道，从摩洛哥薄荷茶到中国功夫茶，茶连接世界。</p></div>
+            <div class="content-block"><h3>🏘️ 社区茶空间</h3><p>在城市角落打造开放式茶空间，让邻里因茶相聚，重建人际联结。一杯茶的时间，足以让陌生人成为朋友。</p></div>
+        </div>
+    </div>
+
+    <!-- ========== 详情页：海 ========== -->
+    <div id="detail-sea" class="detail-page">
+        <div class="detail-hero">
+            <img src="sea.png" alt="海背景">
+            <div class="placeholder-bg">📷 替换背景大图 · 海</div>
+        </div>
+        <button class="detail-back" onclick="closeDetail()">← 返回首页</button>
+        <div class="detail-body">
+            <h1>海之辽阔</h1>
+            <p class="subtitle">茶汤如海般深邃，茶香似浪般绵长，在喧嚣中找到内心的宁静。</p>
+            <div class="content-block"><h3>🏖️ 海边茶寮</h3><p>坐落于海岸线的茶寮，听涛品茗，感受海风与茶香的交织。潮起潮落间，一杯茶让人与自然融为一体。</p></div>
+            <div class="content-block"><h3>🐚 海洋主题茶器</h3><p>以海浪、贝壳为灵感设计的茶器，将海的意象融入日常茶事。每一件茶器都是大海的缩影，承载着蓝色的浪漫。</p></div>
+            <div class="content-block"><h3>⛵ 茶与航海史</h3><p>追溯茶叶随商船远航的历史，见证茶如何连接世界各大洲。从丝绸之路到海上茶路，茶是全球化的先行者。</p></div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        © 2026 TeaBridge v1.6. 以茶为桥，连接山海 | 保留所有权利
+    </footer>
+
+    <script>
+        function navigate(pageId) {
+            closeDetail();
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            document.querySelectorAll('.nav-links a').forEach(a => {
+                a.classList.toggle('active', a.dataset.page === pageId);
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.addEventListener('hashchange', () => {
+            const hash = location.hash.slice(1) || 'home';
+            navigate(hash);
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const hash = location.hash.slice(1) || 'home';
+            navigate(hash);
+        });
+
+        function openDetail(id) {
+            document.getElementById('detail-' + id).classList.add('active');
+            document.body.style.overflow = 'hidden';
+            window.scrollTo(0, 0);
+        }
+
+        function closeDetail() {
+            document.querySelectorAll('.detail-page').forEach(p => p.classList.remove('active'));
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeDetail();
+        });
+    </script>
+</body>
+</html>
